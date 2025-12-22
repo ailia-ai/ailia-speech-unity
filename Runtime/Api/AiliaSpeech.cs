@@ -96,6 +96,17 @@ public class AiliaSpeech
 	*/
 	public const Int32 AILIA_SPEECH_MODEL_TYPE_WHISPER_MULTILINGUAL_LARGE_V3 = (5);
 
+	/**
+	* \~japanese
+	* @def AILIA_SPEECH_MODEL_TYPE_SENSEVOICE_SMALL
+	* @brief SenseVoice Small model
+	*
+	* \~english
+	* @def AILIA_SPEECH_MODEL_TYPE_SENSEVOICE_SMALL
+	* @brief SenseVoice Small model
+	*/
+	public const Int32 AILIA_SPEECH_MODEL_TYPE_SENSEVOICE_SMALL = (10);
+
 	/****************************************************************
 	* タスク定義
 	**/
@@ -271,8 +282,8 @@ public class AiliaSpeech
 	* APIコールバック定義
 	**/
 
-		// API mapping via C#
-		public delegate int ailiaCallbackAudioGetFrameLen(ref Int32 a, int b, int c, int d, int e);
+	// API mapping via C#
+	public delegate int ailiaCallbackAudioGetFrameLen(ref Int32 a, int b, int c, int d, int e);
 	public delegate int ailiaCallbackAudioGetMelSpectrogram(IntPtr a, IntPtr b, int c, int d, int e, int f, int g, int h, int i, int j, float k, int l, float m, float n, int o, int p, int q);
 	public delegate int ailiaCallbackAudioResample(IntPtr a, IntPtr b, int c, int d, int e, int f);
 	public delegate int ailiaCallbackAudioGetResampleLen(IntPtr a, int b, int c, int d);
@@ -713,6 +724,8 @@ public class AiliaSpeech
 	* @param vad_type AILIA_SPEECH_VAD_TYPE_*
 	* @return
 	*   成功した場合は \ref AILIA_STATUS_SUCCESS 、そうでなければエラーコードを返す。
+	* @details
+	*   VADを有効にするにはailiaSpeechSetSilentThresholdで判定しきい値を設定する必要があります。
 	*
 	* \~english
 	* @brief Set vad model for voice activity detection.
@@ -721,6 +734,8 @@ public class AiliaSpeech
 	* @param vad_type AILIA_SPEECH_VAD_TYPE_*
 	* @return
 	*   If this function is successful, it returns  \ref AILIA_STATUS_SUCCESS , or an error code otherwise.
+	* @details
+	*   To enable VAD, you need to set the detection threshold using ailiaSpeechSetSilentThreshold.
 	*/
 #if (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
 	[DllImport(LIBRARY_NAME, EntryPoint = "ailiaSpeechOpenVadFileW", CharSet=CharSet.Unicode)]
@@ -1151,9 +1166,9 @@ public class AiliaSpeech
 	* \~japanese
 	* @brief 無音判定の閾値を設定します。
 	* @param net ネットワークオブジェクトポインタ
-	* @param silent_threshold  有音判定のしきい値
-	* @param speech_sec    有音区間の時間
-	* @param no_speech_sec 無音区間の時間
+	* @param silent_threshold  有音判定のしきい値（標準値0.5）
+	* @param speech_sec    有音区間の時間（秒数）（標準値1.0）
+	* @param no_speech_sec 無音区間の時間（秒数）（標準値1.0）
 	* @return
 	*   有音区間が一定以上存在する場合に無音区間が一定時間以上続いた場合に30secを待たずに滞留しているバッファを処理します。
 	*   成功した場合は \ref AILIA_STATUS_SUCCESS 、そうでなければエラーコードを返す
@@ -1162,9 +1177,9 @@ public class AiliaSpeech
 	* \~english
 	* @brief Set silent threshold.
 	* @param net A network instance pointer
-	* @param silent_threshold  volume threshold
-	* @param speech_sec    speech time
-	* @param no_speech_sec no_speech time
+	* @param silent_threshold  volume threshold (Standard value 0.5)
+	* @param speech_sec    speech time (sec) (Standard value 1.0)
+	* @param no_speech_sec no_speech time (sec) (Standard value 1.0)
 	* @return
 	*   If there are more than a certain number of sounded sections, and if the silent section lasts for a certain amount of time or more,
 	*   the remaining buffer is processed without waiting for 30 seconds.
