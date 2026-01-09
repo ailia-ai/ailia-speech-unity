@@ -480,7 +480,6 @@ public class AiliaSpeechModel : IDisposable
 	/**
 	* \~japanese
 	* @brief 無音判定の閾値を設定します。
-	* @param net ネットワークオブジェクトポインタ
 	* @param silent_threshold  有音判定のしきい値（標準値0.5）
 	* @param speech_sec    有音区間の時間（秒数）（標準値1.0）
 	* @param no_speech_sec 無音区間の時間（秒数）（標準値1.0）
@@ -489,7 +488,6 @@ public class AiliaSpeechModel : IDisposable
 	*
 	* \~english
 	* @brief Set silent threshold.
-	* @param net A network instance pointer
 	* @param silent_threshold  volume threshold (Standard value 0.5)
 	* @param speech_sec    speech time (sec) (Standard value 1.0)
 	* @param no_speech_sec no_speech time (sec) (Standard value 1.0)
