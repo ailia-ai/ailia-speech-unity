@@ -1170,9 +1170,9 @@ public class AiliaSpeech
 	* @param speech_sec    有音区間の時間（秒数）（標準値1.0）
 	* @param no_speech_sec 無音区間の時間（秒数）（標準値1.0）
 	* @return
-	*   有音区間が一定以上存在する場合に無音区間が一定時間以上続いた場合に30secを待たずに滞留しているバッファを処理します。
 	*   成功した場合は \ref AILIA_STATUS_SUCCESS 、そうでなければエラーコードを返す
-	*   languageにautoを指定すると自動選択になる。
+	* @details
+	*   有音区間が一定以上存在する場合に無音区間が一定時間以上続いた場合に30secを待たずに滞留しているバッファを処理します。
 	*
 	* \~english
 	* @brief Set silent threshold.
@@ -1181,10 +1181,10 @@ public class AiliaSpeech
 	* @param speech_sec    speech time (sec) (Standard value 1.0)
 	* @param no_speech_sec no_speech time (sec) (Standard value 1.0)
 	* @return
+	*   If this function is successful, it returns  \ref AILIA_STATUS_SUCCESS , or an error code otherwise.
+	* @details
 	*   If there are more than a certain number of sounded sections, and if the silent section lasts for a certain amount of time or more,
 	*   the remaining buffer is processed without waiting for 30 seconds.
-	*   If this function is successful, it returns  \ref AILIA_STATUS_SUCCESS , or an error code otherwise.
-	*   If you set auto to language, language will automatically detected.
 	*/
 	[DllImport(LIBRARY_NAME)]
 	public static extern int ailiaSpeechSetSilentThreshold(IntPtr net, float silent_threshold, float speech_sec, float no_speech_sec);

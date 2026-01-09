@@ -363,8 +363,8 @@ public class AiliaSpeechModel : IDisposable
     }
 
     /****************************************************************
-        * 開放する
-        */
+    * 開放する
+    */
     /**
     * \~japanese
     * @brief インスタンスを破棄します。
@@ -467,6 +467,38 @@ public class AiliaSpeechModel : IDisposable
         IntPtr input = handle.AddrOfPinnedObject();
         int status = AiliaSpeech.ailiaSpeechSetConstraint(net, input, constraint_type);
         handle.Free();
+        if (status != 0){
+            return false;
+        }
+        return true;
+    }
+
+    /****************************************************************
+     * パラメータの設定
+     */
+
+	/**
+	* \~japanese
+	* @brief 無音判定の閾値を設定します。
+	* @param net ネットワークオブジェクトポインタ
+	* @param silent_threshold  有音判定のしきい値（標準値0.5）
+	* @param speech_sec    有音区間の時間（秒数）（標準値1.0）
+	* @param no_speech_sec 無音区間の時間（秒数）（標準値1.0）
+    * @return
+    *   成功した場合はtrue、失敗した場合はfalseを返す。
+	*
+	* \~english
+	* @brief Set silent threshold.
+	* @param net A network instance pointer
+	* @param silent_threshold  volume threshold (Standard value 0.5)
+	* @param speech_sec    speech time (sec) (Standard value 1.0)
+	* @param no_speech_sec no_speech time (sec) (Standard value 1.0)
+    * @return
+    *   If this function is successful, it returns  true  , or  false  otherwise.
+	*/
+    public bool SetSilentThreshold(float silent_threshold, float speech_sec, float no_speech_sec){
+        int status = AiliaSpeech.ailiaSpeechSetSilentThreshold(net, silent_threshold, speech_sec, no_speech_sec);
+        Check(status, "ailiaSpeechSetSilentThreshold");
         if (status != 0){
             return false;
         }
