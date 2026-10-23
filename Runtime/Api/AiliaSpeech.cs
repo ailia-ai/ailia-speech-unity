@@ -178,10 +178,12 @@ public class AiliaSpeech
 	* \~japanese
 	* @def AILIA_SPEECH_FLAG_LIVE
 	* @brief Live mode
+	* @details 話者分離と併用できます。
 	*
 	* \~english
 	* @def AILIA_SPEECH_FLAG_LIVE
 	* @brief Live mode
+	* @details Can be used with speaker diarization.
 	*/
 	public const Int32 AILIA_SPEECH_FLAG_LIVE = (1);
 
