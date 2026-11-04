@@ -27,6 +27,7 @@ public class AiliaSpeechModel : IDisposable
     IntPtr net = IntPtr.Zero;
     private bool live_mode = false;
     private bool post_process_mode = false;
+    private bool qnn_graph_switching = false;
 
     // settings
     private const float THRESHOLD_VOLUME = 0.01f;
@@ -83,6 +84,33 @@ public class AiliaSpeechModel : IDisposable
     */
     public string GetErrorDetail(){
         return m_error_detail;
+    }
+
+    /**
+    * \~japanese
+    * @brief 現在の端末に対応するQNNモデル名を取得します。
+    * @return
+    *   QNNモデル名（例: "sm8475"）。
+    * @details
+    *   インスタンスを作成せずに呼び出せます。
+    * @throw InvalidOperationException QNN plug-inが存在しない、または未対応SoCの場合
+    *
+    * \~english
+    * @brief    Get the QNN model name for the current device.
+    * @return
+    *   The QNN model name (for example, "sm8475").
+    * @details
+    *   No instance needs to be created.
+    * @throw InvalidOperationException If the QNN plug-in is absent or the SoC is unsupported
+    */
+    public static string GetQNNModelName(){
+        IntPtr name = IntPtr.Zero;
+        int status = AiliaSpeech.ailiaSpeechGetQNNModelName(ref name);
+        if (status != Ailia.AILIA_STATUS_SUCCESS || name == IntPtr.Zero){
+            throw new InvalidOperationException("Failed to get QNN model name. Status: " + status);
+        }
+        // Model names are ASCII. Copy the library-owned string; never free it.
+        return Marshal.PtrToStringAnsi(name);
     }
 
     /****************************************************************
@@ -146,6 +174,27 @@ public class AiliaSpeechModel : IDisposable
 
     /**
     * \~japanese
+    * @brief QNNのグラフスイッチングを設定します。
+    * @param enable   trueで有効（既定値はfalse）
+    * @details
+    *   Openの前に呼び出してください。次回のOpenで、モデルを開く前に適用します。
+    *   .qnnモデルのグラフを必要に応じて切り替え、HTPの常駐メモリを削減します。
+    *   切り替えにより推論時間が増える場合があります。ONNXモデルには影響しません。
+    *
+    * \~english
+    * @brief Configures QNN graph switching.
+    * @param enable   true to enable (default is false)
+    * @details
+    *   Call before Open. The setting is applied by the next Open before the model is opened.
+    *   Graphs in a .qnn model are switched on demand to reduce resident HTP memory.
+    *   Switching may increase inference time. ONNX models are unaffected.
+    */
+    public void SetQNNGraphSwitching(bool enable){
+        qnn_graph_switching = enable;
+    }
+
+    /**
+    * \~japanese
     * @brief インスタンスを作成します。
     * @param encoder_path   エンコーダのONNXファイルヘのパス
     * @param decoder_path   デコーダのONNXファイルヘのパス
@@ -184,6 +233,14 @@ public class AiliaSpeechModel : IDisposable
         Check(status, "ailiaSpeechCreate");
         if (status != 0){
             return false;
+        }
+
+        if (qnn_graph_switching){
+            status = AiliaSpeech.ailiaSpeechSetQNNGraphSwitching(net, 1);
+            Check(status, "ailiaSpeechSetQNNGraphSwitching");
+            if (status != 0){
+                return false;
+            }
         }
 
         status = AiliaSpeech.ailiaSpeechOpenModelFile(net, encoder_path, decoder_path, model_type);
