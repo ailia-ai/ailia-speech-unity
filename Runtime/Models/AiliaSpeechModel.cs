@@ -28,6 +28,7 @@ public class AiliaSpeechModel : IDisposable
     private bool live_mode = false;
     private bool post_process_mode = false;
     private bool qnn_graph_switching = false;
+    private bool vad_buffered_mode = false;
 
     // settings
     private const float THRESHOLD_VOLUME = 0.01f;
@@ -560,6 +561,36 @@ public class AiliaSpeechModel : IDisposable
         return true;
     }
 
+    /**
+    * \~japanese
+    * @brief VADによる発話区切りで認識を行うモードを設定します。
+    * @param enable   trueで有効（既定値はfalse）
+    * @details
+    *   有効にすると、サブスレッドはailiaSpeechBufferedの代わりにailiaSpeechVadBufferedを使用し、
+    *   VADで発話の区切りを検出した時点でのみ認識を行います。
+    *   30秒を超える無音が続いても不要な認識は行われず、発話前の無音は破棄されます。
+    *   OpenVadでVADモデルを開いた後に使用してください。しきい値はSetSilentThresholdで変更できます。
+    *   ライブモード（AILIA_SPEECH_FLAG_LIVE）では無視されます。
+    *   認識結果はGetResultsまたはGetStructuredResultsで取得できます。
+    *
+    * \~english
+    * @brief Configures transcription at utterance boundaries detected by VAD.
+    * @param enable   true to enable (default is false)
+    * @details
+    *   When enabled, the sub thread uses ailiaSpeechVadBuffered instead of ailiaSpeechBuffered
+    *   and transcribes only when VAD detects the end of an utterance.
+    *   Long silence of more than 30 seconds does not trigger transcription, and silence before speech is discarded.
+    *   Open a VAD model with OpenVad first. Thresholds can be changed with SetSilentThreshold.
+    *   Ignored in live mode (AILIA_SPEECH_FLAG_LIVE).
+    *   Results can be obtained with GetResults or GetStructuredResults.
+    */
+    public void SetVadBufferedMode(bool enable){
+        lock (m_lock_async)
+        {
+            vad_buffered_mode = enable;
+        }
+    }
+
     /****************************************************************
      * 結果取得
      */
@@ -725,9 +756,11 @@ public class AiliaSpeechModel : IDisposable
             int samples = 0;
             float[] samples_buf = null;
             bool samples_complete = false;
+            bool use_vad_buffered = false;
 
             lock (m_lock_async)
             {
+                use_vad_buffered = vad_buffered_mode && !live_mode;
                 for (int i = 0; i < threadWaveQueue.Count; i++){
                     float[] waveData = threadWaveQueue[i];
                     samples += waveData.Length;
@@ -760,8 +793,13 @@ public class AiliaSpeechModel : IDisposable
 
             while(true){
                 uint buffered = 0;
-                status = AiliaSpeech.ailiaSpeechBuffered(net, ref buffered);
-                Check(status, "ailiaSpeechBuffered");
+                if (use_vad_buffered){
+                    status = AiliaSpeech.ailiaSpeechVadBuffered(net, ref buffered);
+                    Check(status, "ailiaSpeechVadBuffered");
+                }else{
+                    status = AiliaSpeech.ailiaSpeechBuffered(net, ref buffered);
+                    Check(status, "ailiaSpeechBuffered");
+                }
 
                 if (buffered == 0){
                     break;
